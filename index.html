@@ -297,48 +297,39 @@
         color: var(--accent);
       }
 
-      .troubleshooting-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-        gap: 20px;
-        margin-top: 20px;
-      }
-
-      .trouble-item {
-        background: var(--surface-light);
+      .tab-container {
+        margin-top: 15px;
         border: 1px solid var(--border);
         border-radius: 6px;
-        padding: 20px;
+        overflow: hidden;
       }
 
-      .trouble-error {
-        color: var(--danger);
-        font-family: monospace;
-        font-size: 13px;
-        margin-bottom: 10px;
-        padding: 8px;
-        background: rgba(248, 81, 73, 0.1);
-        border-radius: 4px;
+      .tab-header {
+        display: flex;
+        background: var(--surface-light);
+        border-bottom: 1px solid var(--border);
       }
 
-      .trouble-fix {
-        color: var(--success);
-        font-weight: 600;
-        margin-bottom: 8px;
-      }
-
-      .footer {
-        text-align: center;
-        padding: 30px;
+      .tab-btn {
+        padding: 10px 20px;
+        background: none;
+        border: none;
         color: var(--text-muted);
-        font-size: 14px;
-        margin-top: 40px;
+        cursor: pointer;
+        border-right: 1px solid var(--border);
+        font-weight: 500;
       }
 
-      .highlight {
-        background: rgba(88, 166, 255, 0.2);
-        padding: 2px 4px;
-        border-radius: 3px;
+      .tab-btn.active {
+        background: var(--surface);
+        color: var(--accent);
+        border-bottom: 2px solid var(--accent);
+        margin-bottom: -1px;
+      }
+
+      .tab-content {
+        padding: 20px;
+        background: var(--surface);
       }
 
       @media (max-width: 768px) {
@@ -440,11 +431,15 @@
           <div class="step">
             <div class="step-title">Correct the Folder Structure</div>
             <div class="step-desc">
-              The files extract into a subfolder. Move them to the main
-              directory:
+              The extraction puts files in a folder. We must move them out.
+              <br />
+              <strong>NOTE:</strong> We use explicit copies for hidden files
+              (.ssh, .cloudflared) because <code>cp *</code> ignores them.
             </div>
             <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>cd termux_backup_*
 cp -r * ..
+cp -r .ssh ..
+cp -r .cloudflared ..
 cp .bashrc ..
 cp .npmrc ..
 cd ..</code></pre>
@@ -488,42 +483,75 @@ cd ..</code></pre>
           <span class="badge">CRUCIAL</span>
         </div>
         <div class="phase-desc">
-          Security keys (SSH and Cloudflare) break during a reinstall. You must
-          re-link them manually.
+          This section has been upgraded to support <strong>Dynamic IPs</strong>
+          and <strong>Username Changes</strong>.
         </div>
 
         <div class="subsection">
           <h3>🔐 A. Re-Link SSH (PC to Phone)</h3>
 
-          <div class="steps">
-            <div class="step">
-              <div class="step-title">
-                On PC (PowerShell): Remove the old fingerprint
-              </div>
+          <div class="tab-container">
+            <div class="tab-header">
+              <div class="tab-btn active">Method 1: ADB (Recommended)</div>
+            </div>
+            <div class="tab-content">
               <div class="step-desc">
-                Your PC will block the connection if you don't do this.
+                <strong>Why this is better:</strong> It works even if your WiFi
+                IP changes. It creates a direct tunnel via USB/WiFi Debugging.
               </div>
-              <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>ssh-keygen -R [192.168.100.44]:8022</code></pre>
-            </div>
+              <div class="steps">
+                <div class="step">
+                  <div class="step-title">
+                    1. Get your NEW Username (On Termux)
+                  </div>
+                  <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>whoami</code></pre>
+                  <div class="step-desc">
+                    Write down the output (e.g., <code>u0_a245</code>). You
+                    CANNOT use your old username.
+                  </div>
+                </div>
 
-            <div class="step">
-              <div class="step-title">On Termux: Set a temporary password</div>
-              <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>passwd
+                <div class="step">
+                  <div class="step-title">
+                    2. Set a Password (On Termux)
+                  </div>
+                  <div class="step-desc">
+                     <strong>REQUIRED:</strong> You cannot push a key via SSH without a password first.
+                  </div>
+                  <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>passwd
 # Type '123456' (blindly) twice</code></pre>
-            </div>
+                </div>
 
-            <div class="step">
-              <div class="step-title">
-                On PC (PowerShell): Push your SSH key to the phone
-              </div>
-              <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh -p 8022 u0_a728@192.168.100.44 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys"</code></pre>
-            </div>
+                <div class="step">
+                  <div class="step-title">
+                    3. Restart SSH Server (On Termux)
+                  </div>
+                  <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>pkill sshd
+sshd</code></pre>
+                </div>
 
-            <div class="step">
-              <div class="step-title">
-                On Termux: Restart SSH (Optional but safe)
+                <div class="step">
+                  <div class="step-title">
+                    4. Create the Bridge (PowerShell)
+                  </div>
+                  <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>adb forward tcp:8022 tcp:8022</code></pre>
+                </div>
+
+                <div class="step">
+                  <div class="step-title">
+                    5. Push Keys (PowerShell)
+                  </div>
+                  <div class="step-desc">
+                    Replace <code>NEW_USER</code> with the one you found in Step 1. When asked for password, use <code>123456</code>.
+                  </div>
+                  <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh -p 8022 NEW_USER@localhost "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys"</code></pre>
+                </div>
+
+                <div class="step">
+                  <div class="step-title">6. Connect</div>
+                  <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>ssh -p 8022 NEW_USER@localhost</code></pre>
+                </div>
               </div>
-              <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>pkill sshd && sshd</code></pre>
             </div>
           </div>
         </div>
@@ -568,8 +596,7 @@ cloudflared tunnel create redmi-host</code></pre>
             <div class="step">
               <div class="step-title">3. Create the Config File</div>
               <div class="step-desc">
-                Since <code>config.yml</code> was not backed up, we must create
-                it. Run this command, but <strong>REPLACE</strong>
+                Run this command, but <strong>REPLACE</strong>
                 <code>PUT_UUID_HERE</code> with your new UUID first.
               </div>
               <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>cat <<EOF > ~/.cloudflared/config.yml
@@ -628,37 +655,34 @@ EOF</code></pre>
         <div class="troubleshooting-grid">
           <div class="trouble-item">
             <div class="trouble-error">
-              psql: FATAL: role "..." does not exist
+              Connection closed by 127.0.0.1 port 8022
             </div>
             <div class="trouble-fix">Fix:</div>
-            <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>createuser -s $(whoami)</code></pre>
+            <div class="step-desc">
+              This means you are using the wrong username (from an old
+              install) OR sshd is not running. Run <code>whoami</code> on phone,
+              <code>pkill sshd && sshd</code>, and update your Windows ssh
+              command.
+            </div>
           </div>
 
           <div class="trouble-item">
             <div class="trouble-error">
-              CANNOT LINK EXECUTABLE "node": ... libsqlite3.so
+              ssh: connect to host 192.168.100.x port 8022: Connection refused
             </div>
             <div class="trouble-fix">Fix:</div>
-            <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>ln -s $PREFIX/lib/libsqlite3.so.3 $PREFIX/lib/libsqlite3.so</code></pre>
+            <div class="step-desc">Your IP changed or ADB is disconnected.</div>
+            <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>adb forward tcp:8022 tcp:8022
+ssh -p 8022 NEW_USER@localhost</code></pre>
           </div>
 
           <div class="trouble-item">
             <div class="trouble-error">
-              failed to create tunnel: ... already exists
+              u0_aXXX@localhost: Permission denied (publickey,password)
             </div>
             <div class="trouble-fix">Fix:</div>
             <div class="step-desc">
-              Run this using the UUID from <code>cloudflared tunnel list</code>
-            </div>
-            <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>cloudflared tunnel delete &lt;UUID&gt;</code></pre>
-          </div>
-
-          <div class="trouble-item">
-            <div class="trouble-error">DNS record already exists</div>
-            <div class="trouble-fix">Fix:</div>
-            <div class="step-desc">
-              Log into Cloudflare website and manually delete the old CNAME
-              record before running the <code>route dns</code> command
+              You haven't set a password on Termux yet. Run <code>passwd</code> on the phone, set it to <code>123456</code>, then try the Windows command again.
             </div>
           </div>
         </div>
