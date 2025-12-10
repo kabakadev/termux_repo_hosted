@@ -483,8 +483,8 @@ cd ..</code></pre>
           <span class="badge">CRUCIAL</span>
         </div>
         <div class="phase-desc">
-          This section has been upgraded to support <strong>Dynamic IPs</strong>
-          and <strong>Username Changes</strong>.
+          This section has been upgraded to support
+          <strong>Dynamic IPs</strong> and <strong>Username Changes</strong>.
         </div>
 
         <div class="subsection">
@@ -512,11 +512,10 @@ cd ..</code></pre>
                 </div>
 
                 <div class="step">
-                  <div class="step-title">
-                    2. Set a Password (On Termux)
-                  </div>
+                  <div class="step-title">2. Set a Password (On Termux)</div>
                   <div class="step-desc">
-                     <strong>REQUIRED:</strong> You cannot push a key via SSH without a password first.
+                    <strong>REQUIRED:</strong> You cannot push a key via SSH
+                    without a password first.
                   </div>
                   <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>passwd
 # Type '123456' (blindly) twice</code></pre>
@@ -538,11 +537,10 @@ sshd</code></pre>
                 </div>
 
                 <div class="step">
-                  <div class="step-title">
-                    5. Push Keys (PowerShell)
-                  </div>
+                  <div class="step-title">5. Push Keys (PowerShell)</div>
                   <div class="step-desc">
-                    Replace <code>NEW_USER</code> with the one you found in Step 1. When asked for password, use <code>123456</code>.
+                    Replace <code>NEW_USER</code> with the one you found in Step
+                    1. When asked for password, use <code>123456</code>.
                   </div>
                   <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh -p 8022 NEW_USER@localhost "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys"</code></pre>
                 </div>
@@ -570,7 +568,8 @@ sshd</code></pre>
               </div>
               <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>cloudflared tunnel login</code></pre>
               <div class="step-desc">
-                Copy the URL provided into your browser and authorize the domain.
+                Copy the URL provided into your browser and authorize the
+                domain.
               </div>
             </div>
 
@@ -588,7 +587,8 @@ cloudflared tunnel create redmi-host</code></pre>
               <div class="alert alert-info">
                 <span class="alert-icon">📝</span>
                 <strong
-                  >COPY THE NEW ID (UUID) PRODUCED BY THE CREATE COMMAND.</strong
+                  >COPY THE NEW ID (UUID) PRODUCED BY THE CREATE
+                  COMMAND.</strong
                 >
               </div>
             </div>
@@ -596,18 +596,23 @@ cloudflared tunnel create redmi-host</code></pre>
             <div class="step">
               <div class="step-title">3. Create the Config File</div>
               <div class="step-desc">
-                Run this command, but <strong>REPLACE</strong>
-                <code>PUT_UUID_HERE</code> with your new UUID first.
+                We create the folder first to avoid "No such file" errors, then
+                use Nano for safety.
               </div>
-              <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>cat <<EOF > ~/.cloudflared/config.yml
-tunnel: PUT_UUID_HERE
+              <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>mkdir -p ~/.cloudflared
+nano ~/.cloudflared/config.yml</code></pre>
+
+              <div class="step-desc">
+                Paste the following (Replace <code>PUT_UUID_HERE</code> with
+                your new ID):
+              </div>
+              <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>tunnel: PUT_UUID_HERE
 credentials-file: /data/data/com.termux/files/home/.cloudflared/PUT_UUID_HERE.json
 
 ingress:
   - hostname: ian-dev.top
     service: http://localhost:5000
-  - service: http_status:404
-EOF</code></pre>
+  - service: http_status:404</code></pre>
             </div>
 
             <div class="step">
@@ -659,8 +664,8 @@ EOF</code></pre>
             </div>
             <div class="trouble-fix">Fix:</div>
             <div class="step-desc">
-              This means you are using the wrong username (from an old
-              install) OR sshd is not running. Run <code>whoami</code> on phone,
+              This means you are using the wrong username (from an old install)
+              OR sshd is not running. Run <code>whoami</code> on phone,
               <code>pkill sshd && sshd</code>, and update your Windows ssh
               command.
             </div>
@@ -682,7 +687,21 @@ ssh -p 8022 NEW_USER@localhost</code></pre>
             </div>
             <div class="trouble-fix">Fix:</div>
             <div class="step-desc">
-              You haven't set a password on Termux yet. Run <code>passwd</code> on the phone, set it to <code>123456</code>, then try the Windows command again.
+              You haven't set a password on Termux yet. Run
+              <code>passwd</code> on the phone, set it to <code>123456</code>,
+              then try the Windows command again.
+            </div>
+          </div>
+
+          <div class="trouble-item">
+            <div class="trouble-error">
+              bash: .../.cloudflared/config.yml: No such file or directory
+            </div>
+            <div class="trouble-fix">Fix:</div>
+            <div class="step-desc">
+              The folder does not exist. Run
+              <code>mkdir -p ~/.cloudflared</code> before trying to create the
+              file.
             </div>
           </div>
         </div>
