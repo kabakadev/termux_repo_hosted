@@ -531,52 +531,60 @@ cd ..</code></pre>
         <div class="subsection">
           <h3>☁️ B. Re-Link Cloudflare (The "Ghost Tunnel" Fix)</h3>
           <div class="step-desc">
-            Your old tunnel credentials are dead. You must create a new tunnel.
+            Your old tunnel credentials are dead. You must authorize the device,
+            destroy the old tunnel, and create a fresh one from scratch.
           </div>
 
           <div class="steps">
             <div class="step">
-              <div class="step-title">Delete the old Ghost Tunnel</div>
-              <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code># Get the ID of the old tunnel
-cloudflared tunnel list
-# Delete it
-cloudflared tunnel delete &lt;OLD_UUID&gt;</code></pre>
+              <div class="step-title">
+                1. Authorize Device (Generates cert.pem)
+              </div>
+              <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>cloudflared tunnel login</code></pre>
+              <div class="step-desc">
+                Copy the URL provided into your browser and authorize the domain.
+              </div>
             </div>
 
             <div class="step">
-              <div class="step-title">Create a New Tunnel</div>
-              <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>cloudflared tunnel create redmi-host</code></pre>
+              <div class="step-title">
+                2. Delete the old Ghost Tunnel and Create New
+              </div>
+              <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code># Get the ID of the old tunnel
+cloudflared tunnel list
+# Delete it
+cloudflared tunnel delete &lt;OLD_UUID&gt;
+# Create new one
+cloudflared tunnel create redmi-host</code></pre>
 
               <div class="alert alert-info">
                 <span class="alert-icon">📝</span>
                 <strong
-                  >COPY THE NEW ID (UUID) PRODUCED BY THIS COMMAND.</strong
+                  >COPY THE NEW ID (UUID) PRODUCED BY THE CREATE COMMAND.</strong
                 >
               </div>
             </div>
 
             <div class="step">
-              <div class="step-title">Update the Config</div>
-              <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>nano ~/.cloudflared/config.yml</code></pre>
+              <div class="step-title">3. Create the Config File</div>
+              <div class="step-desc">
+                Since <code>config.yml</code> was not backed up, we must create
+                it. Run this command, but <strong>REPLACE</strong>
+                <code>PUT_UUID_HERE</code> with your new UUID first.
+              </div>
+              <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>cat <<EOF > ~/.cloudflared/config.yml
+tunnel: PUT_UUID_HERE
+credentials-file: /data/data/com.termux/files/home/.cloudflared/PUT_UUID_HERE.json
 
-              <ul>
-                <li>
-                  Paste the <span class="highlight">New UUID</span> into the
-                  <code>tunnel:</code> line
-                </li>
-                <li>
-                  Paste the <span class="highlight">New UUID</span> into the
-                  <code>credentials-file:</code> path
-                </li>
-                <li>
-                  Ensure <code>hostname</code> is just
-                  <code>ian-dev.top</code> (NO <code>https://</code>)
-                </li>
-              </ul>
+ingress:
+  - hostname: ian-dev.top
+    service: http://localhost:5000
+  - service: http_status:404
+EOF</code></pre>
             </div>
 
             <div class="step">
-              <div class="step-title">Fix DNS (The "Ghost Record" Fix)</div>
+              <div class="step-title">4. Fix DNS (The "Ghost Record" Fix)</div>
               <ul>
                 <li>Go to <strong>dash.cloudflare.com</strong> → DNS</li>
                 <li>
